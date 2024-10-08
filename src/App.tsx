@@ -1,17 +1,45 @@
-
+import { useEffect, useState } from "react";
+import RecipeTagList from "./RecipeTagList";
+import RecipeList from "./RecipeList";
+import IRecipe from "./types";
+const API_URL = "https://dummyjson.com/recipes/tags";
+const CATEGORY_URL = "https://dummyjson.com/recipes/tag/";
 const App = () => {
+  const [tagList, setTagList] = useState<string[]>([]);
+  const [recipes, setRecipes] = useState<IRecipe[]>([]);
+  const [tagListHidden, setTagListHidden] = useState(false);
+  useEffect(() => {
+    const getTags = async () => {
+      const response = await fetch(API_URL);
+      const json = await response.json();
+      setTagList(json);
+    };
 
+    getTags();
+  }, []);
+
+  async function onSelectTag(tagName: string) {
+    console.log("Selected tag", tagName);
+    const cTagName = tagName.charAt(0).toUpperCase() + tagName.slice(1);
+
+    const recipes = await fetch(`${CATEGORY_URL}${cTagName}`);
+    const response = await recipes.json();
+
+    setRecipes(response.recipes);
+    setTagListHidden(true);
+  }
 
   return (
     <div>
-        <h1>ACME Recipe O'Master</h1>
-        <div>Remove this and implement recipe tag list here. </div>
-        <ul>
-        <li>On start the application displays a list of recipe tags such as 'pasta', 'cookies' etc. The tag information is loaded from an API (https://dummyjson.com/recipes/tags)</li>
-        <li> The user can click on a tag and the application will then hide the tag list and display a list of recipes matching the selected tag. The recipe information for the clicked tag is loaded from an API (https://dummyjson.com/recipes/tag/Pizza).</li>
-        <li> User can also go back to the tag list. </li>
-        <li> Each receipe is displayed as box where recipe data such as ingredients and instructions are displayed</li>
-        </ul>
+      <h1>ACME Recipe O'Master</h1>
+      {tagListHidden ? (
+        <RecipeList recipes={recipes}></RecipeList>
+      ) : (
+        <RecipeTagList
+          tagList={tagList}
+          onSelectTag={onSelectTag}
+        ></RecipeTagList>
+      )}
     </div>
   );
 };
